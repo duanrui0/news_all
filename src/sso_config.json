@@ -1,0 +1,154 @@
+{
+        "portal": true,
+        "monitor": false,
+        "debug": true,
+        "db": {
+                "isLocal": true,
+                "ip": "mysql",
+                "psm": "vpc.mysql.minibase_write",
+                "user": "MINIBASE_W_USERNAME",
+                "password": "MINIBASE_W_PASSWORD"
+        },
+        "oauth2": {
+                "provider": {
+                        "protocol": "RESTFUL",
+                        "base64State": false,
+                        "login": {
+                                "params": [{
+                                        "position": "QUERY",
+                                        "from": "QUERY",
+                                        "alias": "code",
+                                        "expected": "__ANY__",
+                                        "fromKey": "$.code"
+                                }]
+                        },
+                        "authorization": {
+                                "endpoint": "AUTHORIZATION_ENDPOINT/oauth/authorize?response_type=code&client_id=nhNNIX68xVSgGmc0qMYQYpxA&scope=profile",
+                                "params": [],
+                                "method": "REDIRECT"
+                        },
+                        "loginError": {
+                                "endpoint": "AUTHORIZATION_ENDPOINT/oauth/authorize",
+                                "params": [{
+                                        "alias": "message",
+                                        "str_formatter": "{}",
+                                        "position": "QUERY",
+                                        "from": "EXCEPTION_MESSAGE"
+                                }],
+                                "method": "REDIRECT"
+                        },
+                        "certify": {
+                                "signature": {
+                                        "enabled": false,
+                                        "position": "签名结果填在何处:BODY,QUERY,HEADER",
+                                        "type": "签名算法当前支持SM3/UserDefiner/None",
+                                        "alias": "签名别名",
+                                        "signature_str_join": "拼接签名字符串用的字符"
+                                }
+                        },
+                        "response": [],
+                        "getUserInfo": [{
+                                "stepName": "获取token",
+                                "stepConfig": {
+                                        "endpoint": "VERITY_ENDPOINT/oauth/token",
+                                        "method": "POST",
+                                        "params": [{
+                                                "alias": "Content-Type",
+                                                "str_formatter": "application/x-www-form-urlencoded",
+                                                "position": "HEADER",
+                                                "from": "CONSTANT"
+                                        }, {
+                                                "alias": "Authorization",
+                                                "str_formatter": "Basic bmhOTklYNjh4VlNnR21jMHFNWVFZcHhBOmtRY0xIcWdobFc0NHNmS2QySGtabFNJM0JtSXpua3psSXFoS2tlNGdWamlVYTlBbg==",
+                                                "position": "HEADER",
+                                                "from": "CONSTANT"
+                                        }, {
+                                                "alias": "grant_type",
+                                                "str_formatter": "authorization_code",
+                                                "position": "BODY",
+                                                "from": "CONSTANT"
+                                        }, {
+                                                "alias": "scope",
+                                                "str_formatter": "profile",
+                                                "position": "BODY",
+                                                "from": "CONSTANT"
+                                        }, {
+                                                "alias": "code",
+                                                "fromKey": "$.code",
+                                                "position": "BODY",
+                                                "from": "QUERY"
+                                        }, {
+                                                "position": "QUERY",
+                                                "from": "QUERY",
+                                                "alias": "code",
+                                                "fromKey": "$.code"
+                                        }]
+                                }
+                        }, {
+                                "stepName": "获取用户信息",
+                                "stepConfig": {
+                                        "endpoint": "VERITY_ENDPOINT/api/me",
+                                        "method": "GET",
+                                        "params": [{
+                                                "alias": "Authorization",
+                                                "str_formatter": "Bearer {}",
+                                                "position": "HEADER",
+                                                "from": "CONTEXT",
+                                                "fromKey": "$.access_token"
+                                        }, {
+                                                "position": "QUERY",
+                                                "from": "CONSTANT",
+                                                "str_formatter": "oauth2",
+                                                "alias": "loginType"
+                                        }]
+                                }
+                        }, {
+                                "stepName": "缓存上一个接口响应",
+                                "stepConfig": {
+                                        "endpoint": "VERITY_ENDPOINT/Authorization/loginType",
+                                        "method": "CONSTANT",
+                                        "params": [{
+                                                "alias": "Authorization",
+                                                "str_formatter": "api",
+                                                "position": "PATH",
+                                                "from": "CONSTANT",
+                                                "fromKey": "$.access_token"
+                                        }, {
+                                                "position": "PATH",
+                                                "from": "CONSTANT",
+                                                "str_formatter": "me",
+                                                "alias": "loginType"
+                                        }, {
+                                                "alias": "Authorization",
+                                                "str_formatter": "Bearer {}",
+                                                "position": "HEADER",
+                                                "from": "CONTEXT",
+                                                "fromKey": "$.access_token"
+                                        }, {
+                                                "position": "QUERY",
+                                                "from": "CONSTANT",
+                                                "str_formatter": "oauth2",
+                                                "alias": "loginType"
+                                        }]
+                                }
+                        }],
+                        "userInfo": {
+                                "sso_user_id": "$.id",
+                                "sso_user_name": "$.username"
+                        },
+                        "user_permission": {
+                                "params": [{
+                                        "from": "CONTEXT",
+                                        "comparer": "IN",
+                                        "expected": ["rtfXVs4YiXnc399eyGzdDmwLWiWisAvz2aHIFouDr0", "profile"],
+                                        "fromKey": "$.scope"
+                                }]
+                        }
+                },
+                "portal": {
+                        "redirectUri": "PORTAL_HOST",
+                        "server": "PORTAL_HOST",
+                        "serverbe": "http://vpc-minibase:18888"
+                }
+        }
+}
